@@ -1,5 +1,6 @@
 const database = require("./database");
 
+// Method GET
 const getUsers = (req, res) => {
   database
     .query("select * from users")
@@ -11,8 +12,7 @@ const getUsers = (req, res) => {
       res.status(500).send("Error retrieving data from database");
     });
 };
-
-
+// GET By ID
 const getUsersById = (req, res) => {
   const id = parseInt(req.params.id);
   database
@@ -30,7 +30,27 @@ const getUsersById = (req, res) => {
     });
 };
 
+/// Method POST
+const postUsers = (req, res) => {
+  const { firstname, lastname, email, city, language } = req.body;
+
+  database
+    .query(
+      "INSERT INTO users (firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
+      [firstname, lastname, email, city, language]
+    )
+    .then(([result]) => {
+      res.location(`/api/users/${result.insertId}`).sendStatus(201);
+    })
+    .catch((err) => {
+      console.error(err);
+      res.status(500).send("Error saving the movie");
+    });
+};
+
+//Exports
 module.exports = {
   getUsers,
   getUsersById,
+  postUsers,
 };
