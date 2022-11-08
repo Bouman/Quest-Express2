@@ -1,80 +1,33 @@
-const database = require("./database");
+require("dotenv").config();
+const port = process.env.APP_PORT ?? 5000;
 
-// Method GET
-const getUsers = (req, res) => {
-  database
-    .query("select * from users")
-    .then(([users]) => {
-      res.json(users);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error retrieving data from database");
-    });
-};
-// GET By ID
-const getUsersById = (req, res) => {
-  const id = parseInt(req.params.id);
-  database
-    .query("select * from users where id = ?", [id])
-    .then(([users]) => {
-      if (users[0] != null){
-        res.json(users);
-      } else {
-        res.status(404).send("Not Found");
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error retrieving data from database");
-    });
+const express = require("express");
+const app = express();
+app.use(express.json());
+
+const welcome = (req, res) => {
+  res.send("Welcome to my favourite movie list");
 };
 
-/// Method POST
-const postUsers = (req, res) => {
-  const { firstname, lastname, email, city, language } = req.body;
+app.get("/", welcome);
 
-  database
-    .query(
-      "INSERT INTO users (firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
-      [firstname, lastname, email, city, language]
-    )
-    .then(([result]) => {
-      res.location(`/api/users/${result.insertId}`).sendStatus(201);
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error saving the user");
-    });
-};
+const movieHandlers = require("./movieHandlers");
+app.get("/api/movies", movieHandlers.getMovies);
+app.get("/api/movies/:id", movieHandlers.getMovieById);
+app.post("/api/movies", movieHandlers.postMovie);
+app.put("/api/movies/:id", movieHandlers.updateMovie);
 
-// Method PUT => Update
-const updateUsers = (req, res) => {
-  const id = parseInt(req.params.id);
-  const { firstname, lastname, email, city, language } = req.body;
+const usersHandlers = require("./usersHandlers");
+app.get("/api/users", usersHandlers.getUsers);
+app.get("/api/users/:id", usersHandlers.getUsersById);
+app.post("/api/users", usersHandlers.postUsers);
+app.put("/api/users/:id", usersHandlers.updateUsers);
 
-  database
-    .query(
-      "update users set firstname = ?, lastname = ?, email = ?, city = ?, language = ? where id = ?",
-      [firstname, lastname, email, city, language, id]
-    )
-    .then(([result]) => {
-      if (result.affectedRows === 0) {
-        res.status(404).send("Not Found");
-      } else {
-        res.sendStatus(204);
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send("Error editing the movie");
-    });
-};
 
-//Exports
-module.exports = {
-  getUsers,
-  getUsersById,
-  postUsers,
-  updateUsers,
-};
+app.listen(port, (err) => {
+  if (err) {
+    console.error("Something bad happened");
+  } else {
+    console.log(`Server is listening on ${port}`);
+  }
+});
