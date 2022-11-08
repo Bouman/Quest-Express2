@@ -1,22 +1,22 @@
 const database = require("./database");
 
-//Method Get
-const getMovies = (req, res) => {
-  const initialSql = "select * from movies";
+// Method GET
+const getUsers = (req, res) => {
+  const initialSql = "select * from users";
   const where = [];
 
-  if (req.query.color != null) {
+  if (req.query.lg != null) {
     where.push({
-      column: "color",
-      value: req.query.color,
+      column: "language",
+      value: req.query.lg,
       operator: "=",
     });
   }
-  if (req.query.max_duration != null) {
+  if (req.query.city != null) {
     where.push({
-      column: "duration",
-      value: req.query.max_duration,
-      operator: "<=",
+      column: "city",
+      value: req.query.city,
+      operator: "=",
     });
   }
 
@@ -29,8 +29,8 @@ const getMovies = (req, res) => {
       ),
       where.map(({ value }) => value)
     )
-    .then(([movies]) => {
-      res.json(movies);
+    .then(([users]) => {
+      res.json(users);
     })
     .catch((err) => {
       console.error(err);
@@ -38,17 +38,17 @@ const getMovies = (req, res) => {
     });
 };
 
-// Get by ID
-const getMovieById = (req, res) => {
+// GET By ID
+const getUsersById = (req, res) => {
   const id = parseInt(req.params.id);
   database
-    .query("select * from movies where id = ?", [id])
-    .then(([movies]) => {
-      if (movies){
-        res.json(movies);
+    .query("select * from users where id = ?", [id])
+    .then(([users]) => {
+      if (users[0] != null){
+        res.json(users);
       } else {
-        res.status(404).send("Le film recherché n'existe pas");
-      }  
+        res.status(404).send("Not Found");
+      }
     })
     .catch((err) => {
       console.error(err);
@@ -56,33 +56,33 @@ const getMovieById = (req, res) => {
     });
 };
 
-// Method POST
-const postMovie = (req, res) => {
-  const { title, director, year, color, duration } = req.body;
+/// Method POST
+const postUsers = (req, res) => {
+  const { firstname, lastname, email, city, language } = req.body;
 
   database
     .query(
-      "INSERT INTO movies(title, director, year, color, duration) VALUES (?, ?, ?, ?, ?)",
-      [title, director, year, color, duration]
+      "INSERT INTO users (firstname, lastname, email, city, language) VALUES (?, ?, ?, ?, ?)",
+      [firstname, lastname, email, city, language]
     )
     .then(([result]) => {
-      res.location(`/api/movies/${result.insertId}`).sendStatus(201);
+      res.location(`/api/users/${result.insertId}`).sendStatus(201);
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("Error saving the movie");
+      res.status(500).send("Error saving the user");
     });
 };
 
 // Method PUT => Update
-const updateMovie = (req, res) => {
+const updateUsers = (req, res) => {
   const id = parseInt(req.params.id);
-  const { title, director, year, color, duration } = req.body;
+  const { firstname, lastname, email, city, language } = req.body;
 
   database
     .query(
-      "update movies set title = ?, director = ?, year = ?, color = ?, duration = ? where id = ?",
-      [title, director, year, color, duration, id]
+      "update users set firstname = ?, lastname = ?, email = ?, city = ?, language = ? where id = ?",
+      [firstname, lastname, email, city, language, id]
     )
     .then(([result]) => {
       if (result.affectedRows === 0) {
@@ -93,16 +93,16 @@ const updateMovie = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("Error editing the movie");
+      res.status(500).send("Error editing the user");
     });
 };
 
 //Method Delete
-const deleteMovie = (req, res) => {
+const deleteUsers = (req, res) => {
   const id = parseInt(req.params.id);
 
   database
-    .query("delete from movies where id = ?", [id])
+    .query("delete from users where id = ?", [id])
     .then(([result]) => {
       if (result.affectedRows === 0) {
         res.status(404).send("Not Found");
@@ -112,15 +112,15 @@ const deleteMovie = (req, res) => {
     })
     .catch((err) => {
       console.error(err);
-      res.status(500).send("Error deleting the movie");
+      res.status(500).send("Error deleting the user");
     });
 };
 
-// EXPORTS
+//Exports
 module.exports = {
-  getMovies,
-  getMovieById,
-  postMovie,
-  updateMovie,
-  deleteMovie,
+  getUsers,
+  getUsersById,
+  postUsers,
+  updateUsers,
+  deleteUsers,
 };
